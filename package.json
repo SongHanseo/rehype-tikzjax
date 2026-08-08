@@ -1,22 +1,39 @@
 {
   "name": "rehype-tikzjax",
-  "version": "1.0.0",
+  "version": "0.1.0",
+  "description": "rehype tikz plugin using node-tikzjax",
+  "keywords": [
+    "rehype",
+    "rehype-plugin",
+    "tikz",
+    "tikzjax",
+    "latex"
+  ],
+  "author": "SongHanseo",
+  "license": "MIT",
+
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "tsc && node test/example.js",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "npm run build && node test/example.js",
+    "prepublishOnly": "npm run build"
   },
   "type": "module",
   "dependencies": {
-    "@types/hast": "^3.0.5",
-    "@types/node": "^26.2.0",
     "hast-util-from-html": "^2.0.3",
     "node-tikzjax": "^1.0.5",
+    "unist-util-visit": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/hast": "^3.0.5",
+    "@types/node": "^26.2.0",
     "rehype": "^13.0.2",
     "ts-node": "^10.9.2",
     "typescript": "^7.0.2",
-    "unified": "^11.0.5",
-    "unist-util-visit": "^5.1.0"
+    "unified": "^11.0.5"
   }
 }
