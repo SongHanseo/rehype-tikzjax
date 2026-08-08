@@ -1,0 +1,22 @@
+{
+  "name": "rehype-tikzjax",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "tsc && node test/example.js",
+    "build": "tsc"
+  },
+  "type": "module",
+  "dependencies": {
+    "@types/hast": "^3.0.5",
+    "@types/node": "^26.2.0",
+    "hast-util-from-html": "^2.0.3",
+    "node-tikzjax": "^1.0.5",
+    "rehype": "^13.0.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.1.0"
+  }
+}
