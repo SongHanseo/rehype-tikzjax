@@ -1,6 +1,6 @@
 {
   "name": "rehype-tikzjax",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "rehype tikz plugin using node-tikzjax",
   "keywords": [
     "rehype",
@@ -19,7 +19,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && node test/example.js",
+    "test": "npm run build && node test/example.js && node test/concurrency-test.js",
     "prepublishOnly": "npm run build"
   },
   "type": "module",

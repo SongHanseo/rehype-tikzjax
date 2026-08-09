@@ -6,7 +6,9 @@ import { visit } from 'unist-util-visit';
 import { fromHtml } from 'hast-util-from-html';
 import tex2svg from 'node-tikzjax';
 
-const renderTikz = tex2svg.default;
+const renderTikz = tex2svg.default || tex2svg;
+
+let processing = Promise.resolve();
 
 interface TikzBlock extends Element{
   tagName: 'pre';
@@ -50,12 +52,24 @@ const RehypeTikzjax: Plugin<[(TeXOptions & SvgOptions)?], Root> = (options = {})
     });
 
     for(const node of nodesToConvert) {
-      const tikzsrc = node.children[0].children[0].value;
-      const svg = await renderTikz(tikzsrc, options);
-      const svgHast = fromHtml(svg, {fragment: true});
-      Object.assign(node, svgHast.children[0]);
-    }
+      const tikzsrc = 
+        (node.children[0].children[0].value)
+        .replace(/\n\s*\n/g, '\n');
 
+      await new Promise<void>((resolve) => {
+        processing = processing.then(async () => {
+          try {
+            const svg = await renderTikz(tikzsrc, options);
+            const svgHast = fromHtml(svg, {fragment: true});
+            Object.assign(node, svgHast.children[0]);
+          } catch (err) {
+            console.error('TikZ rendering failed:', err);
+          } finally {
+            resolve();
+          }
+        });
+      })
+    }
   }
 }
 
