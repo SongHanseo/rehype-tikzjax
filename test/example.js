@@ -6,7 +6,7 @@ const document = await fs.readFile('./test/input.html', 'utf8')
 
 const file = await rehype()
   .data('settings', {fragment: true})
-  .use(rehypeTikzjax, {showConsole:true, embedFontCss:true})
+  .use(rehypeTikzjax, {showConsole:true, embedFontCss:true, onError:"throw", removeBlankLines:false})
   .process(document)
 
 await fs.writeFile('./test/output.html', String(file))

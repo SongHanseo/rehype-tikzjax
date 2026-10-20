@@ -1,6 +1,6 @@
 {
   "name": "rehype-tikzjax",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "rehype tikz plugin using node-tikzjax",
   "keywords": [
     "rehype",

@@ -1,10 +1,16 @@
 import type { Plugin } from 'unified'
-import type { Root, Element } from 'hast'
+import type { Root, Element, Parent } from 'hast'
 import type { TeXOptions, SvgOptions } from 'node-tikzjax';
 
 import { visit } from 'unist-util-visit';
 import { fromHtml } from 'hast-util-from-html';
 import tex2svg from 'node-tikzjax';
+
+export interface RehypeTikzjaxOptions extends TeXOptions, SvgOptions {
+  className?: string;
+  removeBlankLines?: boolean;
+  onError? : 'skip' | 'throw';
+}
 
 const renderTikz = tex2svg.default || tex2svg;
 
@@ -40,32 +46,63 @@ function isTikzBlock(node:Element): node is TikzBlock {
   ) === true;
 }
 
-const RehypeTikzjax: Plugin<[(TeXOptions & SvgOptions)?], Root> = (options = {}) => {
+interface TargetNode {
+  node: TikzBlock;
+  index: number;
+  parent: Parent;
+}
+
+const RehypeTikzjax: Plugin<[RehypeTikzjaxOptions?], Root> = (options = {}) => {
+
+  const {
+    className = 'tikz-diagram',
+    removeBlankLines = true,
+    onError = 'skip',
+    ...tikzOptions
+  } = options;
+
   return async (tree) => {
 
-    const nodesToConvert:TikzBlock[] = [];
+    const nodesToConvert:TargetNode[] = [];
 
-    visit(tree, 'element', (node) => {
-      if (isTikzBlock(node)) {
-        nodesToConvert.push(node);
+    visit(tree, 'element', (node, index, parent) => {
+      if (isTikzBlock(node) && index !== undefined && parent) {
+        nodesToConvert.push({ node, index, parent });
       }
     });
 
-    for(const node of nodesToConvert) {
-      const tikzsrc = 
-        (node.children[0].children[0].value)
-        .replace(/\n\s*\n/g, '\n');
+    for (const target of nodesToConvert) {
+      const { node, index, parent } = target;
+      let tikzsrc = node.children[0].children[0].value
 
-      await new Promise<void>((resolve) => {
+      if (removeBlankLines) tikzsrc = tikzsrc.replace(/\n\s*\n/g, '\n');
+
+      await new Promise<void>((resolve, reject) => {
         processing = processing.then(async () => {
           try {
-            const svg = await renderTikz(tikzsrc, options);
-            const svgHast = fromHtml(svg, {fragment: true});
-            Object.assign(node, svgHast.children[0]);
-          } catch (err) {
-            console.error('TikZ rendering failed:', err);
-          } finally {
+            const svg = await renderTikz(tikzsrc, tikzOptions);
+            const svgHast = fromHtml(svg, { fragment: true });
+            const svgNode = svgHast.children[0] as Element;
+
+            if (className) {
+              svgNode.properties = svgNode.properties || {};
+              svgNode.properties.className = [
+                ...(Array.isArray(svgNode.properties.className) ? svgNode.properties.className : []),
+                className
+              ];
+            }
+
+            parent.children[index] = svgNode;
             resolve();
+            
+          } catch (err) {
+            if (onError == 'throw') {
+              reject(err);
+            }
+            else {
+              console.error(err);
+              resolve();
+            }
           }
         });
       })
